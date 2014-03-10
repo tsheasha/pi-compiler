@@ -1,0 +1,11 @@
+a,b= 30,50
+b=50+a
+c=10.0
+while a!=c:
+	a=a+1
+	if a==5:
+		print "hi"
+print "hi" 
+x="hello"
+x='hello'
+print "last statement"

@@ -1,0 +1,10 @@
+def hello():
+	print "hello world"
+
+def bye():
+	print "Good bye world"
+	
+b=10
+a=a*10+b*30
+print a,b
+print hello()

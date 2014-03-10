@@ -1,0 +1,57 @@
+WARNING at line 2 char 13:
+Invalid input ?
+In: while a > 0?:
+WARNING at line 4 char 13:
+CL missing before Suite
+In:     if a > 5
+FileInput
+| AssignmentStmt
+| | a
+| | =
+| | 10
+| WhileStmt
+| | Comparison
+| | | a
+| | | >
+| | | 0
+| | Suite
+| | | PrintStmt
+| | | | a
+| | | IfStmt
+| | | | Comparison
+| | | | | a
+| | | | | >
+| | | | | 5
+| | | | Suite
+| | | | | PrintStmt
+| | | | | | "Big number!"
+| | | | ElseIfOptional
+| | | | | Comparison
+| | | | | | MultExpression
+| | | | | | | a
+| | | | | | | %
+| | | | | | | 2
+| | | | | | !=
+| | | | | | 0
+| | | | | Suite
+| | | | | | PrintStmt
+| | | | | | | "This is an odd number"
+| | | | | | PrintStmt
+| | | | | | | "It isn't greater than five, either"
+| | | | | ElseIfOptional
+| | | | | | Suite
+| | | | | | | PrintStmt
+| | | | | | | | "this number isn't greater than 5"
+| | | | | | | PrintStmt
+| | | | | | | | "nor is it odd"
+| | | | | | | PrintStmt
+| | | | | | | | "feeling special?"
+| | | PrintStmt
+| | | | "we just made 'a' one less than what it was!"
+| | | PrintStmt
+| | | | "and unless a is not greater than 0, we'll do the loop again."
+| PrintStmt
+| | "well, it seems as if 'a' is now no bigger than 0!"
+| PrintStmt
+| | "the loop is now over, and without furthur adue, so is this program!"
+

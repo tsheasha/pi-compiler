@@ -1,0 +1,73 @@
+ID : a
+AO : =
+NM : 10
+NEWLINE
+KW : while
+ID : a
+GT : >
+NM : 0
+CL : :
+NEWLINE
+INDENT
+KW : print
+ID : a
+NEWLINE
+KW : if
+ID : a
+GT : >
+NM : 5
+CL : :
+NEWLINE
+INDENT
+KW : print
+ST : "Big number!"
+NEWLINE
+DEDENT
+KW : elif
+ID : a
+MD : %
+NM : 2
+NE : !=
+NM : 0
+CL : :
+NEWLINE
+INDENT
+KW : print
+ST : "This is an odd number"
+NEWLINE
+KW : print
+ST : "It isn't greater than five, either"
+NEWLINE
+DEDENT
+KW : else
+CL : :
+NEWLINE
+INDENT
+KW : print
+ST : "this number isn't greater than 5"
+NEWLINE
+KW : print
+ST : "nor is it odd"
+NEWLINE
+KW : print
+ST : "feeling special?"
+NEWLINE
+DEDENT
+ID : a
+AO : =
+ID : a
+MO : -
+NM : 1
+NEWLINE
+KW : print
+ST : "we just made 'a' one less than what it was!"
+NEWLINE
+KW : print
+ST : "and unless a is not greater than 0, we'll do the loop again."
+NEWLINE
+DEDENT
+KW : print
+ST : "well, it seems as if 'a' is now no bigger than 0!"
+NEWLINE
+KW : print
+ST : "the loop is now over, and without furthur adue, so is this program!"

@@ -1,0 +1,162 @@
+FileInput
+| FuncDef menu
+| | ParameterList
+| | | x
+| | Suite
+| | | PrintStmt
+| | | | "Welcome to calculator"
+| | | PrintStmt
+| | | | "your options are:"
+| | | PrintStmt
+| | | | " "
+| | | PrintStmt
+| | | | "1) Addition"
+| | | PrintStmt
+| | | | "2) Subtraction"
+| | | PrintStmt
+| | | | "3) Multiplication"
+| | | PrintStmt
+| | | | "4) Division"
+| | | PrintStmt
+| | | | "5) Quit calculator.py"
+| | | PrintStmt
+| | | | " "
+| | | ReturnStmt
+| | | | Call input
+| | | | | "Choose your option: "
+| FuncDef add
+| | ParameterList
+| | | a
+| | | b
+| | Suite
+| | | PrintStmt
+| | | | a
+| | | | "+"
+| | | | b
+| | | | "="
+| | | | ArithmeticExpression
+| | | | | a
+| | | | | +
+| | | | | b
+| FuncDef sub
+| | ParameterList
+| | | a
+| | | b
+| | Suite
+| | | PrintStmt
+| | | | b
+| | | | "-"
+| | | | a
+| | | | "="
+| | | | ArithmeticExpression
+| | | | | b
+| | | | | -
+| | | | | a
+| FuncDef mul
+| | ParameterList
+| | | a
+| | | b
+| | Suite
+| | | PrintStmt
+| | | | a
+| | | | "*"
+| | | | b
+| | | | "="
+| | | | MultExpression
+| | | | | a
+| | | | | *
+| | | | | b
+| FuncDef div
+| | ParameterList
+| | | a
+| | | b
+| | Suite
+| | | PrintStmt
+| | | | a
+| | | | "/"
+| | | | b
+| | | | "="
+| | | | MultExpression
+| | | | | a
+| | | | | /
+| | | | | b
+| AssignmentStmt
+| | loop
+| | =
+| | 1
+| AssignmentStmt
+| | choice
+| | =
+| | 0
+| WhileStmt
+| | Comparison
+| | | loop
+| | | ==
+| | | 1
+| | Suite
+| | | AssignmentStmt
+| | | | choice
+| | | | =
+| | | | Call menu
+| | | | | 1
+| | | IfStmt
+| | | | Comparison
+| | | | | choice
+| | | | | ==
+| | | | | 1
+| | | | Suite
+| | | | | AssignmentStmt
+| | | | | | result
+| | | | | | =
+| | | | | | Call add
+| | | | | | | x
+| | | | | | | x
+| | | | ElseIfOptional
+| | | | | Comparison
+| | | | | | choice
+| | | | | | ==
+| | | | | | 2
+| | | | | Suite
+| | | | | | AssignmentStmt
+| | | | | | | result
+| | | | | | | =
+| | | | | | | Call sub
+| | | | | | | | x
+| | | | | | | | y
+| | | | | ElseIfOptional
+| | | | | | Comparison
+| | | | | | | choice
+| | | | | | | ==
+| | | | | | | 3
+| | | | | | Suite
+| | | | | | | AssignmentStmt
+| | | | | | | | result
+| | | | | | | | =
+| | | | | | | | Call mul
+| | | | | | | | | x
+| | | | | | | | | y
+| | | | | | ElseIfOptional
+| | | | | | | Comparison
+| | | | | | | | choice
+| | | | | | | | ==
+| | | | | | | | 4
+| | | | | | | Suite
+| | | | | | | | AssignmentStmt
+| | | | | | | | | result
+| | | | | | | | | =
+| | | | | | | | | Call div
+| | | | | | | | | | x
+| | | | | | | | | | y
+| | | | | | | ElseIfOptional
+| | | | | | | | Comparison
+| | | | | | | | | choice
+| | | | | | | | | ==
+| | | | | | | | | 5
+| | | | | | | | Suite
+| | | | | | | | | AssignmentStmt
+| | | | | | | | | | loop
+| | | | | | | | | | =
+| | | | | | | | | | 0
+| PrintStmt
+| | "Thankyou for using calculator.py!"
+

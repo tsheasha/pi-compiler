@@ -1,0 +1,313 @@
+import java.io.*;
+import java.util.*;
+import java_cup.runtime.Symbol;
+    
+class Lexer implements java_cup.runtime.Scanner{
+
+	Yylex lexer;
+	Symbol curr;
+	
+	public  Lexer(DataInputStream file) {
+	  try {
+	  lexer=new Yylex(file);
+	  } catch(Exception e) {
+          e.printStackTrace();
+	  }	 
+	}
+	
+	public Symbol getCurr(){
+		return curr;
+	}
+	
+	public Symbol next_token() {
+		curr = null;
+		try {
+		 curr=  lexer.next_token();
+		 if(lexer.eof && lexer.indentStack.peek()!=0){
+		 		lexer.indentStack.pop();
+				return new Symbol(sym.DEDENT,"");			
+		 }
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return curr;
+	}
+	
+	public int getLine(){
+		
+		return lexer.getLine();
+	
+	}
+	public int getChar(){
+		
+		return lexer.getChar();
+	
+	}
+	public int getCharNo(){
+		
+		return lexer.getCharNo();
+	
+	}
+	}
+
+
+%%
+
+
+%function next_token
+%type java_cup.runtime.Symbol
+
+
+%{
+	String stringBuffer;
+	Stack<Integer> indentStack = new Stack<Integer>();
+	int empty;
+	boolean eof,dedents;
+	int prev = 0;
+	int post = 0;
+
+
+%}
+
+
+%init{
+	stringBuffer="";
+	indentStack.push(0);
+	empty=0;
+	yybegin(INDENT);
+	eof = false;
+	dedents = false;
+
+%init}
+
+%{
+public int getCharNo(){
+	return yychar - post;
+}
+
+public int getLine(){
+	return yyline;
+}
+
+public int getChar(){
+	return yychar - prev;
+}
+
+%}
+
+%eof{
+
+	eof = true; 
+	if(indentStack.peek()==0){
+		dedents=true;
+	}
+	
+%eof} 
+
+%state STRINGDOUBLE
+%state STRINGSINGLE
+%state INDENT
+%char
+%line
+
+ALPHA=[A-Za-z_]([A-Za-z0-9_])?
+IDENTIFIER=({ALPHA})+
+
+DIGIT=[0-9]
+NM=({DIGIT})+(\.({DIGIT})+)?
+INVALIDDIGIT=({DIGIT})+(\.)|(\.)({DIGIT})+
+IF = if
+
+ELIF = elif
+
+ELSE = else
+
+WHILE = while
+
+DEF = def
+
+CLASS = class
+
+PRINT = print
+
+RETURN = return
+
+RAISE = raise
+
+IN = in
+
+IS = is
+
+OR = or
+
+AND = and
+
+BL = ([tT]rue|[fF]alse)
+
+ST = [\"\'].*[\"\']
+
+COMMENT = [#].*
+
+NEWLINE = \n
+
+REM = [\r\f]
+
+INDENT=([\t])
+
+WHITE_SPACE=([\ ])
+
+UNCLOSEDSTRING=\"[^\"\n]*$ 
+
+%% 
+
+<YYINITIAL> "+" { return (new Symbol(sym.PO,"+")); }
+<YYINITIAL> "-" { return (new Symbol(sym.MO,"-")); }
+<YYINITIAL> "=" { return (new Symbol(sym.AO,"=")); }
+<YYINITIAL> "==" { return (new Symbol(sym.EQ,"==")); }
+<YYINITIAL> "<>" { return (new Symbol(sym.LG,"<>")); }
+<YYINITIAL> "&" { return (new Symbol(sym.LA,"&")); }
+<YYINITIAL> "*" { return (new Symbol(sym.TO,"*")); }
+<YYINITIAL> "~" { return (new Symbol(sym.NO,"~")); }
+<YYINITIAL> "<" { return (new Symbol(sym.LT,"<")); }
+<YYINITIAL> ">" { return (new Symbol(sym.GT,">")); }
+<YYINITIAL> ">=" { return (new Symbol(sym.GE,">=")); }
+<YYINITIAL> "!=" { return (new Symbol(sym.NE,"!=")); }
+<YYINITIAL> "/" { return (new Symbol(sym.DO,"/")); }
+<YYINITIAL> "%" { return (new Symbol(sym.MD,"%")); }
+<YYINITIAL> "<=" { return (new Symbol(sym.LE,"<=")); }
+<YYINITIAL> "|" { return (new Symbol(sym.LO,"|")); }
+<YYINITIAL> "//" { return (new Symbol(sym.DI,"//")); }
+
+<YYINITIAL> ":" { return (new Symbol(sym.CL,":")); }
+<YYINITIAL> ";" { return (new Symbol(sym.SM,";")); }
+<YYINITIAL> "(" { return (new Symbol(sym.LB,"(")); }
+<YYINITIAL> ")" { return (new Symbol(sym.RB,")")); }
+<YYINITIAL> "," { return (new Symbol(sym.CM,",")); }
+
+<YYINITIAL> {WHITE_SPACE} {  }
+
+<YYINITIAL> {NEWLINE} { post = prev; prev=yychar+1;empty=0; yybegin(INDENT); return (new Symbol(sym.NEWLINE,"")); }
+
+<YYINITIAL> {INDENT} { }
+<YYINITIAL> {REM} { }
+
+
+<YYINITIAL> {COMMENT} { }
+
+
+<YYINITIAL> {WHILE} { return (new Symbol(sym.WHILE,yytext())); }
+
+<YYINITIAL> {IF} { return (new Symbol(sym.IF,yytext())); }
+
+<YYINITIAL> {ELSE} { return (new Symbol(sym.ELSE,yytext())); }
+
+<YYINITIAL> {ELIF} { return (new Symbol(sym.ELIF,yytext())); }
+
+<YYINITIAL> {RETURN} { return (new Symbol(sym.RETURN,yytext())); }
+
+<YYINITIAL> {RAISE} { return (new Symbol(sym.RAISE,yytext())); }
+
+<YYINITIAL> {PRINT} { return (new Symbol(sym.PRINT,yytext())); }
+
+<YYINITIAL> {DEF} { return (new Symbol(sym.DEF,yytext())); }
+
+<YYINITIAL> {CLASS} { return (new Symbol(sym.CLASS,yytext())); }
+
+<YYINITIAL> {AND} { return (new Symbol(sym.AND,yytext())); }
+
+<YYINITIAL> {OR} { return (new Symbol(sym.OR,yytext())); }
+
+<YYINITIAL> {IS} { return (new Symbol(sym.IS,yytext())); }
+
+<YYINITIAL> {IN} { return (new Symbol(sym.IN,yytext())); }
+
+<YYINITIAL> {BL} { return (new Symbol(sym.BL,yytext())); }
+
+<YYINITIAL> {IDENTIFIER} { return (new Symbol(sym.ID,yytext())); }
+
+<YYINITIAL> {NM} { return (new Symbol(sym.NM,yytext())); }
+
+<YYINITIAL> {INVALIDDIGIT} {
+				
+	                        Warning warning = new Warning(getLine()+1,
+			                        getChar()+1, "Invalid Input: "+yytext(),
+			                        AP.input.get(getLine()));
+	                        try {
+		                        AP.writer.write(warning.toString());
+		                        AP.writer.newLine();
+	                        } catch (IOException e) {
+		                        e.printStackTrace();
+	                        }
+	
+				return (new Symbol(sym.NM,yytext())); }
+
+<YYINITIAL> "\"" { stringBuffer="\""; yybegin(STRINGDOUBLE); }
+<STRINGDOUBLE> [^\"\n\r] { stringBuffer = stringBuffer + yytext(); }
+<STRINGDOUBLE> [\"] {yybegin(YYINITIAL); stringBuffer+=yytext(); return (new Symbol(sym.ST,stringBuffer));}
+<STRINGDOUBLE> [\n\r] {yy_buffer_index--; yybegin(YYINITIAL);
+	                        Warning warning = new Warning(getLine()+1,
+			                        getChar()+1, "Invalid String Literal",
+			                        AP.input.get(getLine()));
+	                        try {
+		                        AP.writer.write(warning.toString());
+		                        AP.writer.newLine();
+	                        } catch (IOException e) {
+		                        e.printStackTrace();
+	                        }
+							return (new Symbol(sym.ST,stringBuffer+"\'"));}
+
+
+<YYINITIAL> (\') { stringBuffer="\'"; yybegin(STRINGSINGLE); }
+<STRINGSINGLE> [^\'\n\r] { stringBuffer = stringBuffer + yytext(); }
+<STRINGSINGLE> (\') {yybegin(YYINITIAL); stringBuffer+=yytext(); return (new Symbol(sym.ST,stringBuffer));}
+<STRINGSINGLE> [\n\r] {yy_buffer_index--; yybegin(YYINITIAL);
+	                        Warning warning = new Warning(getLine()+1,
+			                        getChar()+1, "Invalid String Literal",
+			                        AP.input.get(getLine()));
+	                        try {
+		                        AP.writer.write(warning.toString());
+		                        AP.writer.newLine();
+	                        } catch (IOException e) {
+		                        e.printStackTrace();
+	                        }
+							return (new Symbol(sym.ST,stringBuffer+"\'"));}
+
+
+<INDENT> {WHITE_SPACE} { empty += 1;}
+<INDENT> {INDENT} { empty += 4;}
+<INDENT> {REM} { }
+<INDENT> [\n]|. {
+			boolean more_spaces = empty > indentStack.peek();
+			boolean no_more_spaces = empty < indentStack.peek();
+			boolean still_contains_spaces =  indentStack.contains(empty);
+			if(more_spaces){
+		  	indentStack.push(empty);
+		  	yy_buffer_index--;
+		   	yybegin(YYINITIAL);
+		   	return (new Symbol(sym.INDENT,"")); 
+		  }
+		  if(no_more_spaces){
+		  	yy_buffer_index--;
+		  	if(!still_contains_spaces){
+		  		yybegin(YYINITIAL);
+		  		return (new Symbol(sym.ERROR,"INDENT Error"));
+		  	}
+	   		indentStack.pop();
+	   		return (new Symbol(sym.DEDENT,""));
+		  }
+	  	 yy_buffer_index--;
+	  	 yybegin(YYINITIAL);
+		 }
+
+<YYINITIAL> . {
+Warning warning = new Warning(getLine()+1,
+				getChar()+1, "Invalid Input: "+yytext(),
+				AP.input.get(getLine()));
+		try {
+			AP.writer.write(warning.toString());
+			AP.writer.newLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}							
+}

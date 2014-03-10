@@ -1,0 +1,271 @@
+import java_cup.runtime.*;
+import java.util.ArrayList;
+import java.io.IOException;
+import sem.AndExpression;
+import sem.AndTest;
+import sem.ArithmeticExpression;
+import sem.AssignmentStmt;
+import sem.BL;
+import sem.Call;
+import sem.ClassDef;
+import sem.Comparison;
+import sem.CompoundStmt;
+import sem.DefParameter;
+import sem.Elif;
+import sem.ElseIf;
+import sem.ElseIfOptional;
+import sem.Expression;
+import sem.FileInput;
+import sem.FuncDef;
+import sem.ID;
+import sem.IfStmt;
+import sem.MultExpression;
+import sem.NM;
+import sem.OrExpression;
+import sem.ParameterList;
+import sem.PrimaryExpression;
+import sem.PrintStmt;
+import sem.RaiseStmt;
+import sem.ReturnStmt;
+import sem.ST;
+import sem.SimpleStmt;
+import sem.Statement;
+import sem.StmtList;
+import sem.Suite;
+import sem.UnaryExpression;
+import sem.WhileStmt;
+
+parser code {:
+
+	public void syntax_error(Symbol cur_token){
+		try {
+		Lexer l = (Lexer)getScanner();
+		if(cur_token.value!=null){
+			if(cur_token.sym!=sym.NEWLINE)
+				throw new SyntaxException(l.getLine()+1, 
+				(l.getChar()-((String)(cur_token.value)).length()+1)+1,
+				(String)cur_token.value, AP.input.get(l.getLine()));
+			else			
+				throw new SyntaxException(l.getLine()+1, 
+				(l.getCharNo()-((String)(cur_token.value)).length()+1)+1, 
+				(String)cur_token.value, AP.input.get(l.getLine()));
+		}
+		else{
+			throw new SyntaxException(l.getLine()+1,
+			 l.getChar()+1, "EOF", AP.input.get(l.getLine()));
+		}	
+
+		} catch (SyntaxException e1) {
+				try {
+					AP.writer.write(e1.getMessage());
+					AP.writer.newLine();
+					AP.writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+		done_parsing();
+
+	}
+
+:}
+		
+/* Terminals (tokens returned by the scanner). */
+terminal	NM, BL, ST, ID, AO, EQ, LG, LA, TO, NO, LT, GE, NE, PO, DO, GT, LE, LO, MO, DI, LB, RB, SM, CL, NEWLINE,
+INDENT, DEDENT, MD, CM, ERROR, WHILE, IF, ELSE, ELIF, RETURN, OR, AND, IS, IN, PRINT, CLASS, DEF, RAISE;
+
+/* Non-terminals */
+nonterminal FileInput fileInput;
+nonterminal	ArrayList<Statement> res;
+nonterminal Statement statement;
+nonterminal StmtList stmtList;
+nonterminal SimpleStmt simpleStmt;
+nonterminal	ArrayList<SimpleStmt> simpleList;
+nonterminal CompoundStmt compoundStmt;
+nonterminal IfStmt ifStmt;
+nonterminal ElseIfOptional elseIfOptional;
+nonterminal Suite suite;
+nonterminal	Suite suitespec;
+nonterminal String colcheck;
+nonterminal ArrayList<Statement> statements;
+nonterminal WhileStmt whileStmt;
+nonterminal FuncDef funcDef;
+nonterminal ParameterList parameterList;
+nonterminal DefParameter defParameter;
+nonterminal ClassDef classDef;
+nonterminal AssignmentStmt assignmentStmt;
+nonterminal ArrayList<String> targetList;
+nonterminal ArrayList<Expression> expressionList;
+nonterminal PrintStmt printStmt;
+nonterminal ReturnStmt returnStmt;
+nonterminal Expression expression;
+nonterminal AndTest andTest;
+nonterminal Comparison comparison;
+nonterminal String compOperator;
+nonterminal OrExpression orExpression;
+nonterminal AndExpression andExpression;
+nonterminal ArithmeticExpression arithmeticExpression;
+nonterminal MultExpression multExpression;
+nonterminal UnaryExpression unaryExpression;
+nonterminal ArrayList<String> preprimary;
+nonterminal PrimaryExpression primary;
+nonterminal Call call;
+nonterminal RaiseStmt raiseStmt;
+
+/* The grammar */
+fileInput ::= res:r {:RESULT = new FileInput(r);:}
+				| error {:RESULT = null;:};
+
+res ::= res:r NEWLINE {:RESULT = r;:}
+			  | res:r statement:s {: r.add(s); RESULT = r;:} 
+			  |  {:RESULT = new ArrayList<Statement>();:};
+
+statement ::= stmtList:s NEWLINE {:RESULT = s;:}
+			| compoundStmt:c {:RESULT = c;:};
+			
+stmtList ::= simpleList:sl {:RESULT = new StmtList(sl);:};			
+			
+simpleList ::= simpleStmt:s SM simpleList:sl {:sl.add(s); RESULT = sl;:}
+			| simpleStmt:s SM {:
+						ArrayList<SimpleStmt> l = new ArrayList<SimpleStmt>();
+						l.add(s);			
+						RESULT = l;
+						:}
+			| simpleStmt:s {: 
+						ArrayList<SimpleStmt> l = new ArrayList<SimpleStmt>();
+						l.add(s);			
+						RESULT = l;:};
+
+simpleStmt ::= assignmentStmt:as {:RESULT = as;:} 
+				  | printStmt:ps {:RESULT = ps;:}
+				  | raiseStmt:rst {:RESULT = rst;:}
+				  | returnStmt:rs {:RESULT = rs;:};
+				  
+compoundStmt ::= ifStmt:i {:RESULT = i;:}
+				| whileStmt:w {:RESULT = w;:}
+				| funcDef:f {:RESULT = f;:}
+				| classDef:c {:RESULT = c;:};
+
+ifStmt ::= IF expression:ex suite:s elseIfOptional:eli {:RESULT = new IfStmt(ex,s,eli);:};
+
+elseIfOptional ::= ELIF expression:ex suite:s elseIfOptional:eli {:RESULT = new Elif(ex,s,eli);:}
+				 | ELSE suite:su {:RESULT = new ElseIf(su);:} 
+				 | {:RESULT = null;:};
+	
+suite ::= colcheck suitespec:s1 {:RESULT = s1;:};
+
+suitespec ::= stmtList:s NEWLINE {:RESULT = new Suite(s);:}
+		| NEWLINE INDENT statements:s DEDENT {:RESULT = new Suite(s);:};
+
+statements ::= statements:ss statement:s {: ss.add(s);
+                                          RESULT = ss;:}
+			 | statement:st {: ArrayList<Statement> stats = new ArrayList<Statement>();
+			                   stats.add(st);
+			                   RESULT = stats;:};
+			 
+			 
+whileStmt ::= WHILE expression:ex suite:s ELSE suite:su {:RESULT = new WhileStmt(ex,s,su);:}
+			| WHILE expression:exp suite:sut {:RESULT = new WhileStmt(exp,sut,null);:};
+				 
+funcDef ::= DEF ID:id LB parameterList:pl RB suite:su {:RESULT = new FuncDef((String)id,pl,su);:};
+
+parameterList ::= {:ArrayList<DefParameter> paraList1= new ArrayList<DefParameter>();               
+                    RESULT = new ParameterList(paraList1);:} 
+				| defParameter:d CM parameterList:pl {:pl.defParameters.add(d);
+				                                      RESULT = pl;:}
+				| defParameter:dp {: ArrayList<DefParameter> paraList= new ArrayList<DefParameter>();
+				                     paraList.add(dp);
+				                     RESULT = new ParameterList(paraList);:};
+
+defParameter ::= ID:id AO expression:ex {:RESULT = new DefParameter((String)id,ex);:} 
+			   | ID:idd {:RESULT = new DefParameter((String)idd,null);:};
+
+classDef ::= CLASS ID:id suite:su {:RESULT = new ClassDef((String)id,su);:};
+
+assignmentStmt ::= targetList:t AO expressionList:e {:RESULT = new AssignmentStmt(t,e);:};
+
+targetList ::= ID:i CM targetList:t {:t.add((String)i);RESULT = t;:}
+			 | ID:id {: 
+			            ArrayList<String> stID = new ArrayList<String>();
+			            stID.add((String)id);
+			           RESULT = stID;:}
+			 | ID:iid CM {:ArrayList<String> stCM = new ArrayList<String>();
+			            stCM.add((String)iid);
+			              RESULT = stCM;:};
+			 
+expressionList ::= expression:e CM expressionList:el {: el.add(e);
+                                                      RESULT = el;:}
+				| expression:e CM {: ArrayList<Expression> expressionList = new ArrayList<Expression>();
+				                     expressionList.add(e);
+				                     RESULT = expressionList;:}
+				| expression:e {: ArrayList<Expression> expressionList1 = new ArrayList<Expression>();
+				                  expressionList1.add(e);
+				                  RESULT = expressionList1;:};
+				 
+printStmt ::= PRINT {:RESULT = new PrintStmt(null);:}
+			| PRINT expressionList:el {:RESULT = new PrintStmt(el);:};
+
+returnStmt ::= RETURN expressionList:el {:RESULT = new ReturnStmt(el);:}
+				| RETURN {:AP.warning("Return Statement with no value");RESULT = new ReturnStmt(new ArrayList<Expression>());:};
+
+expression ::= andTest:a {:RESULT = a;:} 
+			 | expression:ex OR andTest:aT {:RESULT = new Expression(ex,aT);:};
+
+andTest ::= comparison:c {:RESULT = c;:} 
+		  | andTest:a AND comparison:c {:RESULT = new AndTest(a,c);:};
+
+comparison ::= comparison:c compOperator:co orExpression:o {:RESULT = new Comparison(c,(String)co,o);:}
+			 | orExpression:oex {:RESULT = oex;:};
+
+compOperator ::= LT:lt {:RESULT = (String)lt;:} 
+			   | GT:gt {:RESULT = (String)gt;:} 
+     		   | EQ:eq {:RESULT = (String)eq;:}
+			   | GE:ge {:RESULT = (String)ge;:} 
+			   | LE:le {:RESULT = (String)le;:} 
+			   | LG:lg {:RESULT = (String)lg;:}
+			   | NE:ne {:RESULT = (String)ne;:} 
+			   | IS:is{:RESULT = (String)is;:} 
+			   | IN:in {:RESULT = (String)in;:};
+			   
+orExpression ::= andExpression:a {:RESULT = a;:}
+			   | orExpression:o LO andExpression:ax {:RESULT = new OrExpression(o,ax);:};
+			   
+andExpression ::= arithmeticExpression:a {:RESULT = a;:} 
+				| andExpression:aex LA arithmeticExpression:ax {:RESULT = new AndExpression(aex,ax);:};
+				
+arithmeticExpression ::= multExpression:m {:RESULT = m;:}
+					   | arithmeticExpression:a PO:po multExpression:mx {:RESULT = new ArithmeticExpression(a,(String)po,mx);:}
+					   | arithmeticExpression:ae MO:mo multExpression:mex {:RESULT = new ArithmeticExpression(ae,(String)mo,mex);:};
+					   
+multExpression ::= unaryExpression:u {:RESULT = u;:}
+				 | multExpression:m TO:to unaryExpression:ux {:RESULT = new  MultExpression(m,(String)to,ux);:}
+				 | multExpression:mx DI:di unaryExpression:uex {:RESULT = new  MultExpression(mx,(String)di,uex);:}
+				 | multExpression:mex DO:do1 unaryExpression:uexp {:RESULT = new  MultExpression(mex,(String)do1,uexp);:}
+				 | multExpression:mexp MD:md unaryExpression:uexpr {:RESULT = new MultExpression(mexp,(String)md,uexpr);:};
+				 
+unaryExpression ::= preprimary:pp primary:p {:RESULT = new UnaryExpression(pp,p);:}; 
+
+preprimary ::= MO:mo preprimary:pp {:pp.add((String)mo);RESULT = pp;:}
+				  | PO:po preprimary:pp {:pp.add((String)po);RESULT = pp;:}
+				  | NO:no preprimary:pp  {:pp.add((String)no);RESULT = pp;:}
+				  | {:ArrayList<String> u = new ArrayList<String>(); RESULT = u;:};
+
+
+primary ::= ID:id {:RESULT = new ID((String)id);:} 
+		  | NM:nm {:RESULT = new NM((String)nm);:} 
+		  | ST:st {:RESULT = new ST((String)st);:}
+		  | BL:bl {:RESULT = new BL(new Boolean(bl.toString()));:} 
+		  | call:c {:RESULT = c;:};
+		  
+call ::= ID:id LB expressionList:exp RB {:RESULT = new Call((String)id,exp);:}
+		| ID:iid LB RB {:AP.warning("Call with Empty Parameters");RESULT = new Call((String)iid,new ArrayList<Expression>());:};
+		
+colcheck ::= CL | {:AP.warning("CL Missing Before Suite");:};
+
+raiseStmt ::= RAISE {:RESULT = new RaiseStmt(new ArrayList<Expression>());:}
+			| RAISE expression:e {:ArrayList<Expression> exp = new ArrayList<Expression>();
+			exp.add(e);RESULT = new RaiseStmt(exp);:}
+			| RAISE expression:e CM expression:ee {:ArrayList<Expression> exp = new ArrayList<Expression>();
+			exp.add(e);exp.add(ee);RESULT = new RaiseStmt(exp);:}
+			| RAISE expression:e CM expression:ee CM expression:eee {:ArrayList<Expression> exp = new ArrayList<Expression>();
+			exp.add(e);exp.add(ee);exp.add(eee);RESULT = new RaiseStmt(exp);:};

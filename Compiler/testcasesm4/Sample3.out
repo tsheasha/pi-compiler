@@ -1,0 +1,18 @@
+Rectangle: 
+area:
+ begin_func;
+ t0=x*y;
+ return t0;
+ end_func;
+perimeter:
+ begin_func;
+ t1=2*x;
+ t2=2*y;
+ t3=t1+t2;
+ return t3;
+ end_func;
+ t4="end";
+ push_param t4;
+ call print;
+ pop_params;
+
